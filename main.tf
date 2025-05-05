@@ -4,8 +4,8 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "rg" {
-  name     = "dbclick-rg"
-  location = "East US"
+  name     = "az-rg-dbclick"
+  location = "Poland Central"
 }
 
 // VNet and Subnets

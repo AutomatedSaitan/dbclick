@@ -72,7 +72,7 @@ resource "azurerm_linux_web_app" "app" {
   
   identity {
     type = "UserAssigned"
-    identity_ids = var.client_id
+    identity_ids = [var.client_id]
   }
   app_settings = {
     DB_HOST     = azurerm_mysql_flexible_server.db.fqdn

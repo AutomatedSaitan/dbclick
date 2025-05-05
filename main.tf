@@ -4,7 +4,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "rg" {
-  name     = "az-rg-dbclick"
+  name     = "rg-dbclick"
   location = "Poland Central"
 }
 

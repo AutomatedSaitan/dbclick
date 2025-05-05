@@ -1,7 +1,7 @@
 name: Terraform Deployment
 
 on:
-  workflow_dispatch
+  workflow_dispatch:
   push:
     paths:
       - 'main.tf'

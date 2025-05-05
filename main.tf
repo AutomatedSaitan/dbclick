@@ -76,7 +76,7 @@ resource "azurerm_app_service" "app" {
   site_config {
     application_stack {
       docker_image     = "azacrdbclick-cmeqbmhgamadhreg.azurecr.io"
-      docker_image_tag = dbclick-app:latest
+      docker_image_tag = "dbclick-app:latest"
     }
   }
 }

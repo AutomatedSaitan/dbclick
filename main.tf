@@ -10,7 +10,7 @@ resource "azurerm_resource_group" "rg" {
 
 // VNet and Subnets
 resource "azurerm_virtual_network" "vnet" {
-  name                = "dbclick-vnet"
+  name                = "az-vnet-dbclick"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   address_space       = ["10.0.0.0/16"]

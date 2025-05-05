@@ -1,5 +1,18 @@
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.0"
+    }
+  }
+}
+
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
   subscription_id = "250d1287-152a-48e8-8b1c-2e7a9a8b3256"
 }
 
@@ -18,6 +31,8 @@ resource "azurerm_virtual_network" "vnet" {
   timeouts {
     create = "2h"
   }
+
+  depends_on = [azurerm_resource_group.rg]
 }
 
 resource "azurerm_subnet" "app_subnet" {
@@ -33,7 +48,7 @@ resource "azurerm_subnet" "app_subnet" {
     }
   }
 
-  depends_on = [azurerm_virtual_network.vnet]
+  depends_on = [azurerm_subnet.db_subnet]
 
   timeouts {
     create = "2h"

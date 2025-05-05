@@ -27,11 +27,17 @@ jobs:
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         # Azure subscriptionId
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
+        
+    - name: 'Build and push image'
+      uses: azure/docker-login@v1
+      with:
+        login-server: ${{ secrets.AZURE_CONTAINER_REGISTRY }}
+        username: ${{ secrets.CLIENT_ID }}
+        password: ${{ secrets.CLIENT_PASSWORD }}
+    
     - name: Build Docker image
       run: |
         docker build -t dbclick-app .
-        echo ${{ secrets.CLIENT_PASSWORD }} | docker login ${{ secrets.AZURE_CONTAINER_REGISTRY }} -u ${{ secrets.CLIENT_ID }} --password-stdin
         docker tag dbclick-app ${{ secrets.AZURE_CONTAINER_REGISTRY }}/dbclick-app:latest
         docker push ${{ secrets.AZURE_CONTAINER_REGISTRY }}/dbclick-app:latest
 

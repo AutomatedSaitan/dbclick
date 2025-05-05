@@ -75,7 +75,12 @@ resource "azurerm_linux_web_app" "app" {
   }
 
   site_config {
-    linux_fx_version = "DOCKER|azacrdbclick-cmeqbmhgamadhreg.azurecr.io/dbclick-app:latest"
+    application_stack {
+      docker_image     = "azacrdbclick-cmeqbmhgamadhreg.azurecr.io/dbclick-app:latest"
+      docker_registry_url = "azacrdbclick-cmeqbmhgamadhreg.azurecr.io"
+      docker_registry_username = var.client_id
+      docker_registry_password = var.client_secret
+    }
   }
 }
 
@@ -86,5 +91,14 @@ variable "db_user" {
 
 variable "db_password" {
   description = "Database password"
+  sensitive   = true
+}
+
+variable "client_id" {
+  description = "Container registry username"
+}
+
+variable "client_secret" {
+  description = "Container registry password"
   sensitive   = true
 }

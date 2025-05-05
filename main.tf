@@ -5,7 +5,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "rg" {
   name     = "rg-dbclick"
-  location = "Canada Central"
+  location = "Germany West Central"
 }
 
 // VNet and Subnets

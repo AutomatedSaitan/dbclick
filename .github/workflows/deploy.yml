@@ -33,7 +33,7 @@ jobs:
       with:
         login-server: ${{ secrets.AZURE_CONTAINER_REGISTRY }}
         username: ${{ secrets.AZURE_CLIENT_ID }}
-        password: ${{ secrets.AZURE_CLIENT_PASSWORD }}
+        password: ${{ secrets.AZURE_CLIENT_SECRET }}
     
     - name: Build Docker image
       run: |

@@ -36,7 +36,7 @@ resource "azurerm_mysql_flexible_server" "db" {
   location            = azurerm_resource_group.rg.location
   administrator_login = var.db_user
   administrator_password = var.db_password
-  sku_name            = "Standard_B1ms"
+  sku_name            = "B_Standard_B1s"
   delegated_subnet_id = azurerm_subnet.db_subnet.id
 }
 

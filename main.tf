@@ -51,15 +51,12 @@ resource "azurerm_subnet" "db_subnet" {
 # }
 
 // App Service
-resource "azurerm_app_service_plan" "app_plan" {
+resource "azurerm_service_plan" "app_plan" {
   name                = "dbclick-app-plan"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  always_on          = false
-  sku {
-    tier = "Free"
-    size = "F1"
-  }
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  os_type             = "Linux"
+  sku_name            = "F1"
 }
 
 # resource "azurerm_linux_web_app" "app" {

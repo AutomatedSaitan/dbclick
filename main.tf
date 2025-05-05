@@ -77,7 +77,7 @@ resource "azurerm_linux_web_app" "app" {
   site_config {
     application_stack {
       docker_image_name = "azacrdbclick-cmeqbmhgamadhreg.azurecr.io/dbclick-app:latest"
-      docker_registry_url = "azacrdbclick-cmeqbmhgamadhreg.azurecr.io"
+      docker_registry_url = "https://azacrdbclick-cmeqbmhgamadhreg.azurecr.io"
       docker_registry_username = var.client_id
       docker_registry_password = var.client_secret
     }

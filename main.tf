@@ -72,6 +72,13 @@ resource "azurerm_app_service" "app" {
     DB_PASSWORD = var.db_password
     DB_NAME     = "dbclick"
   }
+
+  site_config {
+    application_stack {
+      docker_image     = "azacrdbclick-cmeqbmhgamadhreg.azurecr.io"
+      docker_image_tag = dbclick-app:latest
+    }
+  }
 }
 
 // Define variables for sensitive data

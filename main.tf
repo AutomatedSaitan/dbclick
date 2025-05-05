@@ -50,13 +50,46 @@ resource "azurerm_mysql_flexible_server" "db" {
   delegated_subnet_id = azurerm_subnet.db_subnet.id
 }
 
+// Private DNS Zone
+resource "azurerm_private_dns_zone" "mysql_dns" {
+  name                = "privatelink.mysql.database.azure.com"
+  resource_group_name = azurerm_resource_group.rg.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "mysql_dns_link" {
+  name                  = "mysql-dns-link"
+  resource_group_name   = azurerm_resource_group.rg.name
+  private_dns_zone_name = azurerm_private_dns_zone.mysql_dns.name
+  virtual_network_id    = azurerm_virtual_network.vnet.id
+}
+
+// Private Endpoint
+resource "azurerm_private_endpoint" "mysql_pe" {
+  name                = "mysql-private-endpoint"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  subnet_id           = azurerm_subnet.app_subnet.id
+
+  private_service_connection {
+    name                           = "mysql-private-connection"
+    private_connection_resource_id = azurerm_mysql_flexible_server.db.id
+    subresource_names             = ["mysqlServer"]
+    is_manual_connection          = false
+  }
+
+  private_dns_zone_group {
+    name                 = "mysql-dns-zone-group"
+    private_dns_zone_ids = [azurerm_private_dns_zone.mysql_dns.id]
+  }
+}
+
 // App Service
 resource "azurerm_service_plan" "app_plan" {
   name                = "dbclick-app-plan"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   os_type             = "Linux"
-  sku_name            = "F1"
+  sku_name            = "B1"
 }
 
 resource "azurerm_linux_web_app" "app" {
@@ -66,7 +99,7 @@ resource "azurerm_linux_web_app" "app" {
   service_plan_id = azurerm_service_plan.app_plan.id
   
   app_settings = {
-    DB_HOST     = azurerm_mysql_flexible_server.db.fqdn
+    DB_HOST     = azurerm_private_endpoint.mysql_pe.private_service_connection[0].private_ip_address
     DB_USER     = var.db_user
     DB_PASSWORD = var.db_password
     DB_NAME     = "dbclick"
@@ -82,7 +115,6 @@ resource "azurerm_linux_web_app" "app" {
     }
   }
 }
-
 
 // Define variables for sensitive data
 variable "db_user" {

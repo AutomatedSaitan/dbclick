@@ -1,0 +1,29 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Log in to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Build Docker image
+      run: |
+        docker build -t dbclick-app .
+        echo ${{ secrets.AZURE_CONTAINER_REGISTRY_PASSWORD }} | docker login ${{ secrets.AZURE_CONTAINER_REGISTRY }} -u ${{ secrets.AZURE_CONTAINER_REGISTRY_USERNAME }} --password-stdin
+        docker tag dbclick-app ${{ secrets.AZURE_CONTAINER_REGISTRY }}/dbclick-app:latest
+        docker push ${{ secrets.AZURE_CONTAINER_REGISTRY }}/dbclick-app:latest
+
+    - name: Deploy to Azure App Service
+      run: az webapp config container set --name dbclick-app --resource-group dbclick-rg --docker-custom-image-name ${{ secrets.AZURE_CONTAINER_REGISTRY }}/dbclick-app:latest

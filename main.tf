@@ -72,8 +72,9 @@ resource "azurerm_linux_web_app" "app" {
   
   identity {
     type = "UserAssigned"
-    identity_ids = [var.client_id]
-  }
+    identity_ids   = [
+      "/subscriptions/250d1287-152a-48e8-8b1c-2e7a9a8b3256/resourceGroups/${azurerm_resource_group.rg.name}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/Deployment"
+    ]
   app_settings = {
     DB_HOST     = azurerm_mysql_flexible_server.db.fqdn
     DB_USER     = var.db_user

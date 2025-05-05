@@ -68,8 +68,12 @@ resource "azurerm_linux_web_app" "app" {
   name                = "dbclick-app"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-  service_plan_id = azurerm_service_plan.app_plan.id
+  service_plan_id     = azurerm_service_plan.app_plan.id
   
+  identity {
+    type = "UserAssigned"
+    identity_ids = var.client_id
+  }
   app_settings = {
     DB_HOST     = azurerm_mysql_flexible_server.db.fqdn
     DB_USER     = var.db_user
@@ -82,8 +86,6 @@ resource "azurerm_linux_web_app" "app" {
     application_stack {
       docker_image_name = "azacrdbclick-cmeqbmhgamadhreg.azurecr.io/dbclick-app:latest"
       docker_registry_url = "https://azacrdbclick-cmeqbmhgamadhreg.azurecr.io"
-      docker_registry_username = var.client_id
-      docker_registry_password = var.client_secret
     }
   }
 }
@@ -99,10 +101,10 @@ variable "db_password" {
 }
 
 variable "client_id" {
-  description = "Container registry username"
+  description = "Service principal client ID for ACR"
 }
 
 variable "client_secret" {
-  description = "Container registry password"
+  description = "Service principal client secret for ACR"
   sensitive   = true
 }

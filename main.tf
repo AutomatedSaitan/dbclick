@@ -34,21 +34,21 @@ resource "azurerm_subnet" "db_subnet" {
   
       service_delegation {
         name    = "Microsoft.DBforMySQL/flexibleServers"
-        #actions = ["Microsoft.Network/virtualNetworks/subnets/join/action", "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action"]
+        actions = ["Microsoft.Network/virtualNetworks/subnets/join/action", "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action"]
       }
     }
 }
 
 // MySQL Database
-# resource "azurerm_mysql_flexible_server" "db" {
-#   name                = "dbclick-mysql"
-#   resource_group_name = azurerm_resource_group.rg.name
-#   location            = azurerm_resource_group.rg.location
-#   administrator_login = var.db_user
-#   administrator_password = var.db_password
-#   sku_name            = "B_Standard_B1ms"
-#   delegated_subnet_id = azurerm_subnet.db_subnet.id
-# }
+resource "azurerm_mysql_flexible_server" "db" {
+  name                = "dbclick-mysql"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  administrator_login = var.db_user
+  administrator_password = var.db_password
+  sku_name            = "B_Standard_B1ms"
+  delegated_subnet_id = azurerm_subnet.db_subnet.id
+}
 
 // App Service
 resource "azurerm_service_plan" "app_plan" {
@@ -59,44 +59,29 @@ resource "azurerm_service_plan" "app_plan" {
   sku_name            = "F1"
 }
 
-# resource "azurerm_linux_web_app" "app" {
-#   name                = "dbclick-app"
-#   location            = azurerm_resource_group.rg.location
-#   resource_group_name = azurerm_resource_group.rg.name
-#   service_plan_id = azurerm_app_service_plan.app_plan.id
-  
-#   app_settings = {
-#     DB_HOST     = azurerm_mysql_flexible_server.db.fqdn
-#     DB_USER     = var.db_user
-#     DB_PASSWORD = var.db_password
-#     DB_NAME     = "dbclick"
-#   }
-
-#   site_config {
-#     application_stack {
-#       docker_image_name = "azacrdbclick-cmeqbmhgamadhreg.azurecr.io/dbclick-app:latest"
-#       docker_registry_url = "https://azacrdbclick-cmeqbmhgamadhreg.azurecr.io"
-#       docker_registry_username = var.client_id
-#       docker_registry_password = var.client_secret
-#     }
-#   }
-# }
-
 resource "azurerm_linux_web_app" "app" {
   name                = "dbclick-app"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-  service_plan_id     = azurerm_service_plan.app_plan.id
-
+  service_plan_id = azurerm_service_plan.app_plan.id
+  
+  app_settings = {
+    DB_HOST     = azurerm_mysql_flexible_server.db.fqdn
+    DB_USER     = var.db_user
+    DB_PASSWORD = var.db_password
+    DB_NAME     = "dbclick"
+  }
 
   site_config {
-    always_on = false
     application_stack {
-      docker_image_name   = "azacrdbclick-cmeqbmhgamadhreg.azurecr.io/dbclick-app:latest"
+      docker_image_name = "azacrdbclick-cmeqbmhgamadhreg.azurecr.io/dbclick-app:latest"
       docker_registry_url = "https://azacrdbclick-cmeqbmhgamadhreg.azurecr.io"
+      docker_registry_username = var.client_id
+      docker_registry_password = var.client_secret
     }
   }
 }
+
 
 // Define variables for sensitive data
 variable "db_user" {

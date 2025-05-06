@@ -102,7 +102,10 @@ resource "azurerm_mysql_flexible_server" "db" {
   delegated_subnet_id    = azurerm_subnet.db_subnet.id
   private_dns_zone_id    = azurerm_private_dns_zone.mysql.id
 
-  depends_on = [azurerm_subnet.db_subnet]
+  depends_on = [
+    azurerm_subnet.db_subnet,
+    azurerm_private_dns_zone_virtual_network_link.mysql
+  ]
 
   timeouts {
     create = "2h"

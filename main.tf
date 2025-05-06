@@ -16,6 +16,8 @@ provider "azurerm" {
   subscription_id = "250d1287-152a-48e8-8b1c-2e7a9a8b3256"
 }
 
+data "azurerm_subscription" "current" {}
+
 resource "azurerm_resource_group" "rg" {
   name     = "rg-dbclick"
   location = "North Europe"
@@ -132,7 +134,7 @@ resource "azurerm_linux_web_app" "app" {
   identity {
     type = "UserAssigned"
     identity_ids   = [
-      "/subscriptions/${azurerm_resource_group.rg.subscription_id}/resourceGroups/az-rg-dbclick/providers/Microsoft.ManagedIdentity/userAssignedIdentities/Deployment"
+      "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/az-rg-dbclick/providers/Microsoft.ManagedIdentity/userAssignedIdentities/Deployment"
     ]
   }
   app_settings = {

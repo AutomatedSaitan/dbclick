@@ -2,9 +2,14 @@ name: Build and Deploy
 
 on:
   workflow_dispatch:
-  #push:
-  #  branches:
-  #    - master
+  push:
+    branches:
+      - master
+    paths:
+      - 'index.js'
+      - 'Dockerfile'
+      - 'package.json'
+      - 'package-lock.json'
       
 permissions:
   id-token: write

@@ -60,7 +60,7 @@ jobs:
     - name: Terraform Plan
       run: |
         sudo chmod -R 777 .
-        terraform plan -out=terraform.tfplan
+        terraform plan -out=terraform.tfplan -lock=false
       env:
         ARM_USE_OIDC: true
         ARM_USE_CLI: true

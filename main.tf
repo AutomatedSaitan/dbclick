@@ -154,7 +154,6 @@ resource "azurerm_linux_web_app" "app" {
     DB_PASSWORD          = var.db_password
     DB_NAME              = "dbclick"
     WEBSITE_DNS_SERVER   = "168.63.129.16"
-    WEBSITE_VNET_ROUTE_ALL = "1"
     DOCKER_REGISTRY_SERVER_URL = "https://azacrdbclick-cmeqbmhgamadhreg.azurecr.io"
     DOCKER_REGISTRY_SERVER_USERNAME = var.client_id
     DOCKER_REGISTRY_SERVER_PASSWORD = var.client_secret

@@ -93,6 +93,10 @@ resource "azurerm_subnet" "app_subnet" {
 resource "azurerm_private_dns_zone" "mysql" {
   name                = "privatelink.mysql.database.azure.com"
   resource_group_name = azurerm_resource_group.rg.name
+
+  depends_on = [
+    azurerm_resource_group.rg
+  ]
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "mysql" {
@@ -103,6 +107,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "mysql" {
   registration_enabled  = false
 
   depends_on = [
+    azurerm_resource_group.rg,
     azurerm_virtual_network.vnet,
     azurerm_private_dns_zone.mysql,
     azurerm_subnet.db_subnet,

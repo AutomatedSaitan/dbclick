@@ -97,7 +97,7 @@ jobs:
             --auth-mode login
 
     - name: Terraform Apply
-      run: terraform apply -lock-timeout=20m terraform.tfplan -parallelism=1
+      run: terraform apply -lock-timeout=20m -parallelism=1 terraform.tfplan
       env:
         ARM_USE_OIDC: true
         ARM_USE_CLI: true

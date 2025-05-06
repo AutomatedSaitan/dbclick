@@ -49,7 +49,7 @@ jobs:
             --auth-mode login || true
 
     - name: Terraform Init
-      run: terraform init
+      run: terraform init -upgrade
       env:
         ARM_USE_OIDC: true
         ARM_USE_CLI: true
@@ -97,7 +97,7 @@ jobs:
             --auth-mode login
 
     - name: Terraform Apply
-      run: terraform apply -lock-timeout=20m terraform.tfplan
+      run: terraform apply -lock-timeout=20m terraform.tfplan -parallelism=1
       env:
         ARM_USE_OIDC: true
         ARM_USE_CLI: true

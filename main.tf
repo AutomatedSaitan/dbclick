@@ -32,7 +32,7 @@ resource "azurerm_role_assignment" "user_access_admin" {
 
 resource "azurerm_resource_group" "rg" {
   name     = "rg-dbclick"
-  location = "Norway East"
+  location = "West Europe"
 }
 
 // VNet and Subnets
@@ -46,27 +46,7 @@ resource "azurerm_virtual_network" "vnet" {
     create = "2h"
   }
 
-  depends_on = [azurerm_resource_group.rg, azurerm_role_assignment.user_access_admin]
-}
-
-resource "azurerm_subnet" "app_subnet" {
-  name                 = "app-subnet"
-  resource_group_name  = azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = ["10.0.1.0/24"]
-  delegation {
-    name = "app-delegation"
-    service_delegation {
-      name    = "Microsoft.Web/serverFarms"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-    }
-  }
-
-  depends_on = [azurerm_subnet.db_subnet]
-
-  timeouts {
-    create = "2h"
-  }
+  depends_on = [azurerm_resource_group.rg]
 }
 
 resource "azurerm_subnet" "db_subnet" {
@@ -79,6 +59,26 @@ resource "azurerm_subnet" "db_subnet" {
     service_delegation {
       name    = "Microsoft.DBforMySQL/flexibleServers"
       actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
+
+  depends_on = [azurerm_virtual_network.vnet]
+
+  timeouts {
+    create = "2h"
+  }
+}
+
+resource "azurerm_subnet" "app_subnet" {
+  name                 = "app-subnet"
+  resource_group_name  = azurerm_resource_group.rg.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = ["10.0.1.0/24"]
+  delegation {
+    name = "app-delegation"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
 
@@ -104,7 +104,9 @@ resource "azurerm_private_dns_zone_virtual_network_link" "mysql" {
 
   depends_on = [
     azurerm_virtual_network.vnet,
-    azurerm_private_dns_zone.mysql
+    azurerm_private_dns_zone.mysql,
+    azurerm_subnet.db_subnet,
+    azurerm_subnet.app_subnet
   ]
 
   timeouts {

@@ -26,7 +26,7 @@ data "azurerm_user_assigned_identity" "app_identity" {
 // Add User Access Administrator role to managed identity
 resource "azurerm_role_assignment" "user_access_admin" {
   scope                = azurerm_resource_group.rg.id
-  role_definition_name = "User Access Administrator"
+  role_definition_name = "Owner"
   principal_id         = data.azurerm_user_assigned_identity.app_identity.principal_id
 }
 
@@ -78,7 +78,7 @@ resource "azurerm_subnet" "db_subnet" {
     name = "db-delegation"
     service_delegation {
       name    = "Microsoft.DBforMySQL/flexibleServers"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action", "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action"]
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
     }
   }
 

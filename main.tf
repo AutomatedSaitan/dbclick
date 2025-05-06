@@ -18,6 +18,11 @@ provider "azurerm" {
 
 data "azurerm_subscription" "current" {}
 
+data "azurerm_user_assigned_identity" "app_identity" {
+  name                = "Deployment"
+  resource_group_name = "az-rg-dbclick"
+}
+
 resource "azurerm_resource_group" "rg" {
   name     = "rg-dbclick"
   location = "North Europe"
@@ -135,6 +140,7 @@ resource "azurerm_service_plan" "app_plan" {
   }
 }
 
+
 resource "azurerm_linux_web_app" "app" {
   name                     = "dbclick-app"
   location                 = azurerm_resource_group.rg.location
@@ -144,9 +150,7 @@ resource "azurerm_linux_web_app" "app" {
 
   identity {
     type = "UserAssigned"
-    identity_ids = [
-      "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/az-rg-dbclick/providers/Microsoft.ManagedIdentity/userAssignedIdentities/Deployment"
-    ]
+    identity_ids = [data.azurerm_user_assigned_identity.app_identity.id]
   }
   app_settings = {
     DB_HOST              = azurerm_mysql_flexible_server.db.fqdn
@@ -157,7 +161,7 @@ resource "azurerm_linux_web_app" "app" {
     WEBSITE_VNET_ROUTE_ALL = "1"
     DOCKER_REGISTRY_SERVER_URL = "azacrdbclick-cmeqbmhgamadhreg.azurecr.io"
     DOCKER_ENABLE_MANAGED_IDENTITY = "true"
-    AZURE_CLIENT_ID      = trimprefix(element(azurerm_linux_web_app.app.identity[0].identity_ids, 0), "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/az-rg-dbclick/providers/Microsoft.ManagedIdentity/userAssignedIdentities/")
+    AZURE_CLIENT_ID      = data.azurerm_user_assigned_identity.app_identity.client_id
   }
 
   site_config {

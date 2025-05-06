@@ -57,10 +57,20 @@ jobs:
         ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+    - name: Force Unlock State (if needed)
+      continue-on-error: true
+      run: terraform force-unlock -force $(terraform state pull 2>/dev/null | jq -r '.serial')
+      env:
+        ARM_USE_OIDC: true
+        ARM_USE_CLI: true
+        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
     - name: Terraform Plan
       run: |
         sudo chmod -R 777 .
-        terraform plan -out=terraform.tfplan -lock=false
+        terraform plan -out=terraform.tfplan -lock-timeout=5m
       env:
         ARM_USE_OIDC: true
         ARM_USE_CLI: true
@@ -85,7 +95,7 @@ jobs:
             --auth-mode login
 
     - name: Terraform Apply
-      run: terraform apply terraform.tfplan
+      run: terraform apply -lock-timeout=20m terraform.tfplan
       env:
         ARM_USE_OIDC: true
         ARM_USE_CLI: true

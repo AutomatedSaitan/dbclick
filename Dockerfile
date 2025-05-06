@@ -4,7 +4,11 @@ WORKDIR /app
 
 # Copy dependency files first
 COPY package*.json ./
-RUN npm ci
+RUN npm install --production && \
+    # Clean npm cache
+    npm cache clean --force && \
+    # Remove unnecessary files
+    rm -rf /root/.npm
 
 # Create non-root user
 RUN groupadd -r nodejs && useradd -r -g nodejs nodejs

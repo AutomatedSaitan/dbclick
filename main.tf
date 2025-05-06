@@ -98,9 +98,13 @@ resource "azurerm_mysql_flexible_server" "db" {
   location               = azurerm_resource_group.rg.location
   administrator_login    = var.db_user
   administrator_password = var.db_password
-  sku_name              = "B_Standard_B1ms"
-  delegated_subnet_id    = azurerm_subnet.db_subnet.id
+  sku_name               = "B_Standard_B1ms"
   private_dns_zone_id    = azurerm_private_dns_zone.mysql.id
+
+  network {
+    delegated_subnet_id = azurerm_subnet.db_subnet.id
+    private_dns_zone_id = azurerm_private_dns_zone.mysql.id
+  }
 
   depends_on = [
     azurerm_subnet.db_subnet,
@@ -110,6 +114,14 @@ resource "azurerm_mysql_flexible_server" "db" {
   timeouts {
     create = "2h"
   }
+}
+
+resource "azurerm_mysql_flexible_database" "database" {
+  name                = "dbclick"
+  resource_group_name = azurerm_resource_group.rg.name
+  server_name         = azurerm_mysql_flexible_server.db.name
+  charset             = "utf8"
+  collation           = "utf8_unicode_ci"
 }
 
 // App Service
@@ -128,30 +140,35 @@ resource "azurerm_service_plan" "app_plan" {
 }
 
 resource "azurerm_linux_web_app" "app" {
-  name                = "dbclick-app"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  service_plan_id     = azurerm_service_plan.app_plan.id
+  name                     = "dbclick-app"
+  location                 = azurerm_resource_group.rg.location
+  resource_group_name      = azurerm_resource_group.rg.name
+  service_plan_id          = azurerm_service_plan.app_plan.id
   virtual_network_subnet_id = azurerm_subnet.app_subnet.id
 
   identity {
     type = "UserAssigned"
-    identity_ids   = [
+    identity_ids = [
       "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/az-rg-dbclick/providers/Microsoft.ManagedIdentity/userAssignedIdentities/Deployment"
     ]
   }
   app_settings = {
-    DB_HOST     = "${azurerm_mysql_flexible_server.db.name}.private.mysql.database.azure.com"
-    DB_USER     = var.db_user
-    DB_PASSWORD = var.db_password
-    DB_NAME     = "dbclick"
+    DB_HOST              = "${azurerm_mysql_flexible_server.db.name}.private.mysql.database.azure.com"
+    DB_USER              = "${var.db_user}@${azurerm_mysql_flexible_server.db.name}"
+    DB_PASSWORD          = var.db_password
+    DB_NAME              = "dbclick"
+    WEBSITE_DNS_SERVER   = "168.63.129.16"
+    WEBSITE_VNET_ROUTE_ALL = "1"
+    DOCKER_REGISTRY_SERVER_URL = "https://azacrdbclick-cmeqbmhgamadhreg.azurecr.io"
+    DOCKER_REGISTRY_SERVER_USERNAME = var.client_id
+    DOCKER_REGISTRY_SERVER_PASSWORD = var.client_secret
   }
 
   site_config {
     always_on = false
     vnet_route_all_enabled = true
     application_stack {
-      docker_image_name = "azacrdbclick-cmeqbmhgamadhreg.azurecr.io/dbclick-app:latest"
+      docker_image_name   = "azacrdbclick-cmeqbmhgamadhreg.azurecr.io/dbclick-app:latest"
       docker_registry_url = "https://azacrdbclick-cmeqbmhgamadhreg.azurecr.io"
     }
   }

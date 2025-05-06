@@ -39,13 +39,3 @@ jobs:
       run: |
         docker build -t ${{ vars.AZURE_CONTAINER_REGISTRY }}.azurecr.io/dbclick-app:latest .
         docker push ${{ vars.AZURE_CONTAINER_REGISTRY }}.azurecr.io/dbclick-app:latest
-
-    - name: Deploy to Azure App Service
-      run: |
-        az webapp config container set \
-          --name dbclick-app \
-          --resource-group rg-dbclick \
-          --container-registry-url https://${{ vars.AZURE_CONTAINER_REGISTRY }}.azurecr.io \
-          --container-image-name dbclick-app:latest \
-          --container-registry-user ${{ secrets.AZURE_CLIENT_ID }} \
-          --container-registry-password ${{ secrets.AZURE_CLIENT_SECRET }}

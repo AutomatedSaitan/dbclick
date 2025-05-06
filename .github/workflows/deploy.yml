@@ -31,22 +31,22 @@ jobs:
     - name: 'Build and push image'
       uses: azure/docker-login@v1
       with:
-        login-server: ${{ secrets.AZURE_CONTAINER_REGISTRY }}
+        login-server: ${{ vars.AZURE_CONTAINER_REGISTRY }}
         username: ${{ secrets.AZURE_CLIENT_ID }}
         password: ${{ secrets.AZURE_CLIENT_SECRET }}
     
     - name: Build Docker image
       run: |
         docker build -t dbclick-app .
-        docker tag dbclick-app ${{ secrets.AZURE_CONTAINER_REGISTRY }}/dbclick-app:latest
-        docker push ${{ secrets.AZURE_CONTAINER_REGISTRY }}/dbclick-app:latest
+        docker tag dbclick-app ${{ vars.AZURE_CONTAINER_REGISTRY }}/dbclick-app:latest
+        docker push ${{ vars.AZURE_CONTAINER_REGISTRY }}/dbclick-app:latest
 
     - name: Deploy to Azure App Service
       run: |
         az webapp config container set \
           --name dbclick-app \
           --resource-group rg-dbclick \
-          --container-registry-url https://azacrdbclick-cmeqbmhgamadhreg.azurecr.io \
+          --container-registry-url https://${{ vars.AZURE_CONTAINER_REGISTRY }}.azurecr.io \
           --container-image-name dbclick-app:latest \
           --container-registry-user ${{ secrets.AZURE_CLIENT_ID }} \
           --container-registry-password ${{ secrets.AZURE_CLIENT_SECRET }}

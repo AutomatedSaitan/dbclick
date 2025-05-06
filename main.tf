@@ -228,6 +228,9 @@ resource "azurerm_role_assignment" "acr_push" {
   scope                = azurerm_container_registry.acr.id
   role_definition_name = "AcrPush"
   principal_id         = data.azurerm_user_assigned_identity.app_identity.principal_id
+    depends_on = [
+    azurerm_container_registry.acr
+  ]
 }
 
 // Add AcrPull role assignment for web app
@@ -235,6 +238,9 @@ resource "azurerm_role_assignment" "acr_pull" {
   scope                = azurerm_container_registry.acr.id
   role_definition_name = "AcrPull"
   principal_id         = data.azurerm_user_assigned_identity.app_identity.principal_id
+  depends_on = [
+    azurerm_container_registry.acr
+  ]
 }
 
 // Add ACR Webhook

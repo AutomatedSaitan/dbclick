@@ -155,9 +155,9 @@ resource "azurerm_linux_web_app" "app" {
     DB_NAME              = "dbclick"
     WEBSITE_DNS_SERVER   = "168.63.129.16"
     WEBSITE_VNET_ROUTE_ALL = "1"
-    DOCKER_REGISTRY_SERVER_URL = "https://azacrdbclick-cmeqbmhgamadhreg.azurecr.io"
-    DOCKER_REGISTRY_SERVER_USERNAME = var.client_id
-    DOCKER_REGISTRY_SERVER_PASSWORD = var.client_secret
+    DOCKER_REGISTRY_SERVER_URL = "azacrdbclick-cmeqbmhgamadhreg.azurecr.io"
+    DOCKER_ENABLE_MANAGED_IDENTITY = "true"
+    AZURE_CLIENT_ID      = trimprefix(element(azurerm_linux_web_app.app.identity[0].identity_ids, 0), "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/az-rg-dbclick/providers/Microsoft.ManagedIdentity/userAssignedIdentities/")
   }
 
   site_config {
@@ -190,11 +190,11 @@ variable "db_password" {
   sensitive   = true
 }
 
-variable "client_id" {
-  description = "Service principal client ID for ACR"
-}
+# variable "client_id" {
+#   description = "Service principal client ID for ACR"
+# }
 
-variable "client_secret" {
-  description = "Service principal client secret for ACR"
-  sensitive   = true
-}
+# variable "client_secret" {
+#   description = "Service principal client secret for ACR"
+#   sensitive   = true
+# }

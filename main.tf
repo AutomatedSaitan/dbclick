@@ -179,15 +179,17 @@ resource "azurerm_linux_web_app" "app" {
   service_plan_id          = azurerm_service_plan.app_plan.id
   virtual_network_subnet_id = azurerm_subnet.app_subnet.id
 
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [data.azurerm_user_assigned_identity.app_identity.id]
+  }
+
   app_settings = {
-    DB_HOST                        = azurerm_mysql_flexible_server.db.fqdn
-    DB_USER                        = var.db_user
-    DB_PASSWORD                    = var.db_password
-    DB_NAME                        = "dbclick"
-    WEBSITE_DNS_SERVER             = "168.63.129.16"
-    DOCKER_REGISTRY_SERVER_URL     = "https://${azurerm_container_registry.acr.login_server}"
-    DOCKER_REGISTRY_SERVER_USERNAME = var.client_id
-    DOCKER_REGISTRY_SERVER_PASSWORD = var.client_secret
+    DB_HOST                = azurerm_mysql_flexible_server.db.fqdn
+    DB_USER                = var.db_user
+    DB_PASSWORD            = var.db_password
+    DB_NAME                = "dbclick"
+    WEBSITE_DNS_SERVER     = "168.63.129.16"
   }
 
   site_config {
@@ -223,6 +225,13 @@ resource "azurerm_container_registry" "acr" {
 resource "azurerm_role_assignment" "acr_push" {
   scope                = azurerm_container_registry.acr.id
   role_definition_name = "AcrPush"
+  principal_id         = data.azurerm_user_assigned_identity.app_identity.principal_id
+}
+
+// Add AcrPull role assignment for web app
+resource "azurerm_role_assignment" "acr_pull" {
+  scope                = azurerm_container_registry.acr.id
+  role_definition_name = "AcrPull"
   principal_id         = data.azurerm_user_assigned_identity.app_identity.principal_id
 }
 

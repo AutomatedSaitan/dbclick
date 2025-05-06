@@ -124,7 +124,6 @@ resource "azurerm_mysql_flexible_server" "db" {
   name                   = "dbclick-mysql"
   resource_group_name    = azurerm_resource_group.rg.name
   location               = azurerm_resource_group.rg.location
-  zone                   = "1"
   administrator_login    = var.db_user
   administrator_password = var.db_password
   sku_name               = "B_Standard_B1ms"

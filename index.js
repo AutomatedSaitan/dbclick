@@ -66,6 +66,26 @@ app.get('/', (req, res) => {
   `);
 });
 
+// Add method not allowed handler
+app.use((req, res, next) => {
+  if (req.path === '/add-entry' && req.method !== 'POST') {
+    console.error(`[${new Date().toISOString()}] Method ${req.method} not allowed for ${req.path}`);
+    return res.status(405).json({
+      error: 'Method Not Allowed',
+      message: 'This endpoint only accepts POST requests',
+      allowedMethods: ['POST'],
+      requestedMethod: req.method,
+      path: req.path
+    });
+  }
+  next();
+});
+
+// Add health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+});
+
 app.get('/last-entry', async (req, res) => {
   try {
     const connection = await mysql.createConnection(dbConfig);
@@ -79,17 +99,64 @@ app.get('/last-entry', async (req, res) => {
 });
 
 app.post('/add-entry', async (req, res) => {
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] Processing POST request to /add-entry`);
+  
   try {
     const connection = await mysql.createConnection(dbConfig);
+    console.log(`[${timestamp}] Database connection established`);
+    
     const randomString = Math.random().toString(36).substring(2, 15);
     const currentTime = new Date();
-    await connection.execute('INSERT INTO entries (timestamp, random_string) VALUES (?, ?)', [currentTime, randomString]);
+    
+    console.log(`[${timestamp}] Inserting new entry with random string: ${randomString}`);
+    const [result] = await connection.execute(
+      'INSERT INTO entries (timestamp, random_string) VALUES (?, ?)',
+      [currentTime, randomString]
+    );
+    
     await connection.end();
-    res.send('Entry added');
+    console.log(`[${timestamp}] Entry added successfully. Insert ID: ${result.insertId}`);
+    
+    res.status(201).json({
+      message: 'Entry added successfully',
+      id: result.insertId,
+      timestamp: currentTime,
+      randomString: randomString
+    });
   } catch (error) {
-    console.error('Error adding entry:', error.message);
-    res.status(500).json({ error: 'Database error: ' + error.message });
+    console.error(`[${timestamp}] Error adding entry:`, error);
+    res.status(500).json({
+      error: 'Database error',
+      message: error.message,
+      code: error.code,
+      state: error.sqlState,
+      timestamp: timestamp
+    });
   }
+});
+
+// Add error handling middleware
+app.use((err, req, res, next) => {
+  const timestamp = new Date().toISOString();
+  console.error(`[${timestamp}] Unhandled error:`, err);
+  res.status(500).json({
+    error: 'Internal Server Error',
+    message: err.message,
+    timestamp: timestamp,
+    path: req.path
+  });
+});
+
+// Add 404 handler
+app.use((req, res) => {
+  const timestamp = new Date().toISOString();
+  console.error(`[${timestamp}] 404 Not Found: ${req.method} ${req.path}`);
+  res.status(404).json({
+    error: 'Not Found',
+    message: `Cannot ${req.method} ${req.path}`,
+    timestamp: timestamp
+  });
 });
 
 async function startServer() {

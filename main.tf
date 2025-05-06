@@ -25,7 +25,7 @@ data "azurerm_user_assigned_identity" "app_identity" {
 
 resource "azurerm_resource_group" "rg" {
   name     = "rg-dbclick"
-  location = "North Europe"
+  location = "Sweden Central"
 }
 
 // VNet and Subnets

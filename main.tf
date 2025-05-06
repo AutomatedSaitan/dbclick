@@ -253,7 +253,11 @@ resource "azurerm_container_registry_webhook" "acr_webhook" {
   registry_name       = azurerm_container_registry.acr.name
   location            = azurerm_resource_group.rg.location
 
-  service_uri = "https://$${azurerm_linux_web_app.app.name}:${azurerm_linux_web_app.app.site_credential[0].password}@${azurerm_linux_web_app.app.name}.scm.azurewebsites.net/api/registry/webhook"
+  service_uri = format("https://$%s:%s@%s.scm.azurewebsites.net/api/registry/webhook",
+    azurerm_linux_web_app.app.name,
+    azurerm_linux_web_app.app.site_credential[0].password,
+    azurerm_linux_web_app.app.name
+  )
   
   actions = ["push"]
   status  = "enabled"

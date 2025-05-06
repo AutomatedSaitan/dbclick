@@ -41,5 +41,12 @@ jobs:
         docker tag dbclick-app ${{ secrets.AZURE_CONTAINER_REGISTRY }}/dbclick-app:latest
         docker push ${{ secrets.AZURE_CONTAINER_REGISTRY }}/dbclick-app:latest
 
-    #- name: Deploy to Azure App Service
-    #  run: az webapp config container set --name dbclick-app --resource-group rg-dbclick --container-image-name ${{ secrets.AZURE_CONTAINER_REGISTRY }}/dbclick-app:latest
+    - name: Deploy to Azure App Service
+      run: |
+        az webapp config container set \
+          --name dbclick-app \
+          --resource-group rg-dbclick \
+          --docker-registry-server-url https://azacrdbclick-cmeqbmhgamadhreg.azurecr.io \
+          --docker-custom-image-name dbclick-app:latest \
+          --docker-registry-server-user ${{ secrets.AZURE_CLIENT_ID }} \
+          --docker-registry-server-password ${{ secrets.AZURE_CLIENT_SECRET }}

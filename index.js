@@ -10,7 +10,10 @@ const dbConfig = {
   database: process.env.DB_NAME,
 };
 
-async function testDatabaseConnection() {
+const MAX_RETRIES = 5;
+const RETRY_DELAY = 5000; // 5 seconds
+
+async function testDatabaseConnection(retryCount = 0) {
   try {
     const connection = await mysql.createConnection(dbConfig);
     await connection.query('SELECT 1');
@@ -18,10 +21,35 @@ async function testDatabaseConnection() {
     console.log('Database connection successful');
     return true;
   } catch (error) {
-    console.error('Database connection failed:', error.message);
+    console.error(`Database connection attempt ${retryCount + 1} failed:`, error.message);
+    if (retryCount < MAX_RETRIES) {
+      console.log(`Retrying in ${RETRY_DELAY / 1000} seconds...`);
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+      return testDatabaseConnection(retryCount + 1);
+    }
     return false;
   }
 }
+
+// Add root route for API instructions
+app.get('/', (req, res) => {
+  res.send(`
+    <h1>Entries API Documentation</h1>
+    <h2>Available Endpoints:</h2>
+    <ul>
+      <li><strong>GET /last-entry</strong> - Retrieves the most recent entry from the database</li>
+      <li><strong>POST /add-entry</strong> - Adds a new entry with current timestamp and random string</li>
+    </ul>
+    <h2>Example Usage:</h2>
+    <pre>
+    # Get last entry
+    curl http://localhost:${port}/last-entry
+
+    # Add new entry
+    curl -X POST http://localhost:${port}/add-entry
+    </pre>
+  `);
+});
 
 app.get('/last-entry', async (req, res) => {
   try {
@@ -50,9 +78,10 @@ app.post('/add-entry', async (req, res) => {
 });
 
 async function startServer() {
+  console.log('Testing database connection...');
   const dbConnected = await testDatabaseConnection();
   if (!dbConnected) {
-    console.error('Server startup failed: Could not connect to database');
+    console.error(`Server startup failed: Could not connect to database after ${MAX_RETRIES} attempts`);
     process.exit(1);
   }
   

@@ -196,7 +196,7 @@ resource "azurerm_linux_web_app" "app" {
     always_on = false
     vnet_route_all_enabled = true
     application_stack {
-      docker_image_name   = "${azurerm_container_registry.acr.login_server}/dbclick-app:latest"
+      docker_image_name   = "dbclick-app:latest"
       docker_registry_url = "https://${azurerm_container_registry.acr.login_server}"
     }
   }

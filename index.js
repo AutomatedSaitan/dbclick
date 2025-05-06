@@ -81,10 +81,10 @@ app.get('/', (req, res) => {
     <h2>Example Usage:</h2>
     <pre>
     # Get last entry
-    curl http://localhost:${port}/last-entry
+    curl http://https://dbclick-app.azurewebsites.net/last-entry
 
     # Add new entry
-    curl http://localhost:${port}/add-entry
+    curl http://https://dbclick-app.azurewebsites.net/add-entry
     </pre>
   `);
 });

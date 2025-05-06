@@ -142,6 +142,24 @@ resource "azurerm_mysql_flexible_database" "database" {
   collation           = "utf8_unicode_ci"
 }
 
+resource "null_resource" "database_setup" {
+  provisioner "local-exec" {
+    command = <<-EOT
+      mysql -h ${azurerm_mysql_flexible_server.db.fqdn} -u ${var.db_user} -p${var.db_password} ${azurerm_mysql_flexible_database.database.name} -e "
+      CREATE TABLE IF NOT EXISTS entries (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        timestamp DATETIME NOT NULL,
+        random_string VARCHAR(255) NOT NULL
+      );"
+    EOT
+  }
+
+  depends_on = [
+    azurerm_mysql_flexible_database.database,
+    azurerm_mysql_flexible_server_configuration.allow_app_access
+  ]
+}
+
 resource "azurerm_mysql_flexible_server_configuration" "allow_app_access" {
   name                = "require_secure_transport"
   resource_group_name = azurerm_resource_group.rg.name

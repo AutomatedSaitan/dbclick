@@ -75,6 +75,20 @@ resource "azurerm_subnet" "db_subnet" {
   }
 }
 
+// Add Private DNS Zone
+resource "azurerm_private_dns_zone" "mysql" {
+  name                = "privatelink.mysql.database.azure.com"
+  resource_group_name = azurerm_resource_group.rg.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "mysql" {
+  name                  = "mysql-dns-link"
+  private_dns_zone_name = azurerm_private_dns_zone.mysql.name
+  resource_group_name   = azurerm_resource_group.rg.name
+  virtual_network_id    = azurerm_virtual_network.vnet.id
+  registration_enabled  = false
+}
+
 // MySQL Database
 resource "azurerm_mysql_flexible_server" "db" {
   name                   = "dbclick-mysql"
@@ -84,6 +98,7 @@ resource "azurerm_mysql_flexible_server" "db" {
   administrator_password = var.db_password
   sku_name              = "B_Standard_B1ms"
   delegated_subnet_id    = azurerm_subnet.db_subnet.id
+  private_dns_zone_id    = azurerm_private_dns_zone.mysql.id
 
   depends_on = [azurerm_subnet.db_subnet]
 
@@ -112,7 +127,8 @@ resource "azurerm_linux_web_app" "app" {
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   service_plan_id     = azurerm_service_plan.app_plan.id
-  
+  virtual_network_subnet_id = azurerm_subnet.app_subnet.id
+
   identity {
     type = "UserAssigned"
     identity_ids   = [
@@ -120,7 +136,7 @@ resource "azurerm_linux_web_app" "app" {
     ]
   }
   app_settings = {
-    DB_HOST     = azurerm_mysql_flexible_server.db.fqdn
+    DB_HOST     = "${azurerm_mysql_flexible_server.db.name}.private.mysql.database.azure.com"
     DB_USER     = var.db_user
     DB_PASSWORD = var.db_password
     DB_NAME     = "dbclick"
@@ -128,13 +144,18 @@ resource "azurerm_linux_web_app" "app" {
 
   site_config {
     always_on = false
+    vnet_route_all_enabled = true
     application_stack {
       docker_image_name = "azacrdbclick-cmeqbmhgamadhreg.azurecr.io/dbclick-app:latest"
       docker_registry_url = "https://azacrdbclick-cmeqbmhgamadhreg.azurecr.io"
     }
   }
 
-  depends_on = [azurerm_service_plan.app_plan, azurerm_mysql_flexible_server.db]
+  depends_on = [
+    azurerm_service_plan.app_plan, 
+    azurerm_mysql_flexible_server.db,
+    azurerm_private_dns_zone_virtual_network_link.mysql
+  ]
 
   timeouts {
     create = "2h"

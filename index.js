@@ -14,19 +14,30 @@ const MAX_RETRIES = 5;
 const RETRY_DELAY = 5000; // 5 seconds
 
 async function testDatabaseConnection(retryCount = 0) {
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] Attempting database connection (attempt ${retryCount + 1}/${MAX_RETRIES + 1})`);
+  console.log(`[${timestamp}] Connection details: host=${dbConfig.host}, user=${dbConfig.user}, database=${dbConfig.database}`);
+  
   try {
     const connection = await mysql.createConnection(dbConfig);
     await connection.query('SELECT 1');
     await connection.end();
-    console.log('Database connection successful');
+    console.log(`[${timestamp}] ✓ Database connection successful`);
+    console.log(`[${timestamp}] Connection state: closed`);
     return true;
   } catch (error) {
-    console.error(`Database connection attempt ${retryCount + 1} failed:`, error.message);
+    console.error(`[${timestamp}] ✗ Database connection attempt ${retryCount + 1} failed:`);
+    console.error(`[${timestamp}] Error code: ${error.code}`);
+    console.error(`[${timestamp}] Error number: ${error.errno}`);
+    console.error(`[${timestamp}] SQL state: ${error.sqlState}`);
+    console.error(`[${timestamp}] Error message: ${error.message}`);
+    
     if (retryCount < MAX_RETRIES) {
-      console.log(`Retrying in ${RETRY_DELAY / 1000} seconds...`);
+      console.log(`[${timestamp}] Retrying in ${RETRY_DELAY / 1000} seconds...`);
       await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
       return testDatabaseConnection(retryCount + 1);
     }
+    console.error(`[${timestamp}] ✗ Maximum retry attempts (${MAX_RETRIES}) reached. Giving up.`);
     return false;
   }
 }

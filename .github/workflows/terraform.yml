@@ -69,6 +69,8 @@ jobs:
         ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         TF_VAR_db_user: ${{ vars.DB_USER }}
         TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+        TF_VAR_client_id: ${{ vars.AZURE_CLIENT_ID }}
+        TF_VAR_client_password: ${{ secrets.AZURE_CLIENT_PASSWORD }}
 
     - name: Upload Terraform Plan
       uses: azure/CLI@v1
@@ -92,3 +94,5 @@ jobs:
         ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         TF_VAR_db_user: ${{ vars.DB_USER }}
         TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+        TF_VAR_client_id: ${{ vars.AZURE_CLIENT_ID }}
+        TF_VAR_client_password: ${{ secrets.AZURE_CLIENT_PASSWORD }}

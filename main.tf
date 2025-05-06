@@ -172,17 +172,13 @@ resource "azurerm_linux_web_app" "app" {
   service_plan_id          = azurerm_service_plan.app_plan.id
   virtual_network_subnet_id = azurerm_subnet.app_subnet.id
 
-  #identity {
-  #  type = "SystemAssigned"
-  #}
-  
   app_settings = {
     DB_HOST                        = azurerm_mysql_flexible_server.db.fqdn
     DB_USER                        = var.db_user
     DB_PASSWORD                    = var.db_password
     DB_NAME                        = "dbclick"
     WEBSITE_DNS_SERVER             = "168.63.129.16"
-    DOCKER_REGISTRY_SERVER_URL     = "https://azacrdbclick-cmeqbmhgamadhreg.azurecr.io"
+    DOCKER_REGISTRY_SERVER_URL     = "https://${azurerm_container_registry.acr.login_server}"
     DOCKER_REGISTRY_SERVER_USERNAME = var.client_id
     DOCKER_REGISTRY_SERVER_PASSWORD = var.client_secret
   }
@@ -191,8 +187,8 @@ resource "azurerm_linux_web_app" "app" {
     always_on = false
     vnet_route_all_enabled = true
     application_stack {
-      docker_image_name   = "dbclick-app:latest"
-      docker_registry_url = "https://azacrdbclick-cmeqbmhgamadhreg.azurecr.io"
+      docker_image_name   = "${azurerm_container_registry.acr.login_server}/dbclick-app:latest"
+      docker_registry_url = "https://${azurerm_container_registry.acr.login_server}"
     }
   }
 
@@ -207,14 +203,30 @@ resource "azurerm_linux_web_app" "app" {
   }
 }
 
+// Add Azure Container Registry
+resource "azurerm_container_registry" "acr" {
+  name                = var.container_registry_name
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  sku                 = "Basic"
+  admin_enabled       = false
+}
+
+// Assign ACR Push role to managed identity
+resource "azurerm_role_assignment" "acr_push" {
+  scope                = azurerm_container_registry.acr.id
+  role_definition_name = "AcrPush"
+  principal_id         = data.azurerm_user_assigned_identity.app_identity.principal_id
+}
+
 // Add ACR Webhook
 resource "azurerm_container_registry_webhook" "acr_webhook" {
-  name                = "webapp-update"
-  resource_group_name = "az-rg-dbclick"
-  registry_name       = "azacrdbclick-cmeqbmhgamadhreg"
-  location           = azurerm_resource_group.rg.location
+  name                = "webappupdate01"
+  resource_group_name = azurerm_resource_group.rg.name
+  registry_name       = azurerm_container_registry.acr.name
+  location            = azurerm_resource_group.rg.location
 
-  service_uri = "https://$${azurerm_linux_web_app.app.site_credential[0].name}:$${azurerm_linux_web_app.app.site_credential[0].password}@${azurerm_linux_web_app.app.name}.scm.azurewebsites.net/docker/hook"
+  service_uri = "https://${azurerm_linux_web_app.app.site_credential[0].name}:${azurerm_linux_web_app.app.site_credential[0].password}@${azurerm_linux_web_app.app.name}.scm.azurewebsites.net/docker/hook"
   
   actions = ["push"]
   status  = "enabled"
@@ -242,4 +254,8 @@ variable "client_id" {
 variable "client_secret" {
   description = "Service principal client secret for ACR"
   sensitive   = true
+}
+
+variable "container_registry_name" {
+  description = "Name of the Azure Container Registry"
 }

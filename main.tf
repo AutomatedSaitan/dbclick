@@ -179,10 +179,10 @@ resource "azurerm_linux_web_app" "app" {
   service_plan_id          = azurerm_service_plan.app_plan.id
   virtual_network_subnet_id = azurerm_subnet.app_subnet.id
 
-  identity {
-    type         = "UserAssigned"
-    identity_ids = [data.azurerm_user_assigned_identity.app_identity.id]
-  }
+  #dentity {
+  # type         = "UserAssigned"
+  # identity_ids = [data.azurerm_user_assigned_identity.app_identity.id]
+  #
 
   app_settings = {
     DB_HOST                = azurerm_mysql_flexible_server.db.fqdn

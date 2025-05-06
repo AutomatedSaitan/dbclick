@@ -53,7 +53,7 @@ app.get('/', (req, res) => {
     <h2>Available Endpoints:</h2>
     <ul>
       <li><strong>GET /last-entry</strong> - Retrieves the most recent entry from the database</li>
-      <li><strong>POST /add-entry</strong> - Adds a new entry with current timestamp and random string</li>
+      <li><strong>GET /add-entry</strong> - Adds a new entry with current timestamp and random string</li>
     </ul>
     <h2>Example Usage:</h2>
     <pre>
@@ -61,24 +61,9 @@ app.get('/', (req, res) => {
     curl http://localhost:${port}/last-entry
 
     # Add new entry
-    curl -X POST http://localhost:${port}/add-entry
+    curl http://localhost:${port}/add-entry
     </pre>
   `);
-});
-
-// Add method not allowed handler
-app.use((req, res, next) => {
-  if (req.path === '/add-entry' && req.method !== 'POST') {
-    console.error(`[${new Date().toISOString()}] Method ${req.method} not allowed for ${req.path}`);
-    return res.status(405).json({
-      error: 'Method Not Allowed',
-      message: 'This endpoint only accepts POST requests',
-      allowedMethods: ['POST'],
-      requestedMethod: req.method,
-      path: req.path
-    });
-  }
-  next();
 });
 
 // Add health check endpoint
@@ -98,9 +83,9 @@ app.get('/last-entry', async (req, res) => {
   }
 });
 
-app.post('/add-entry', async (req, res) => {
+app.get('/add-entry', async (req, res) => {
   const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] Processing POST request to /add-entry`);
+  console.log(`[${timestamp}] Processing GET request to /add-entry`);
   
   try {
     const connection = await mysql.createConnection(dbConfig);

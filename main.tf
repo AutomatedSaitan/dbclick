@@ -227,14 +227,14 @@ resource "azurerm_container_registry" "acr" {
 resource "azurerm_role_assignment" "acr_push" {
   scope                = azurerm_container_registry.acr.id
   role_definition_name = "AcrPush"
-  principal_id         = data.azurerm_user_assigned_identity.app_identity.id
+  principal_id         = data.azurerm_user_assigned_identity.app_identity.principal_id
 }
 
 // Add AcrPull role assignment for web app
 resource "azurerm_role_assignment" "acr_pull" {
   scope                = azurerm_container_registry.acr.id
   role_definition_name = "AcrPull"
-  principal_id         = data.azurerm_user_assigned_identity.app_identity.id
+  principal_id         = data.azurerm_user_assigned_identity.app_identity.principal_id
 }
 
 // Add ACR Webhook

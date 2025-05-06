@@ -4,6 +4,7 @@ terraform {
     storage_account_name = "tfstatedbclick"
     container_name       = "tfstate"
     key                 = "terraform.tfstate"
-    use_cli            = true
+    use_oidc           = true
+    use_azuread_auth   = true
   }
 }

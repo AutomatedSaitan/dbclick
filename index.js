@@ -3,6 +3,10 @@ const mysql = require('mysql2/promise');
 const app = express();
 const port = 3000;
 
+// Add middleware configuration
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 const dbConfig = {
   host: process.env.DB_HOST,
   user: process.env.DB_USER,

@@ -52,21 +52,21 @@ jobs:
       run: terraform init
       env:
         ARM_USE_OIDC: true
-        ARM_USE_AZUREAD: true
+        ARM_USE_CLI: true
         ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-        ARM_ACCESS_KEY: ${{ secrets.ACCESS_KEY }}
+        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
     - name: Terraform Plan
       run: |
         sudo chmod -R 777 .
         terraform plan -out=terraform.tfplan
       env:
-        TF_VAR_client_id: ${{ secrets.AZURE_CLIENT_ID }}
-        TF_VAR_client_secret: ${{ secrets.AZURE_CLIENT_SECRET }}
-        TF_VAR_ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        TF_VAR_ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        ARM_USE_OIDC: true
+        ARM_USE_CLI: true
+        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         TF_VAR_db_user: ${{ vars.DB_USER }}
         TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
 
@@ -85,9 +85,10 @@ jobs:
     - name: Terraform Apply
       run: terraform apply terraform.tfplan
       env:
-        TF_VAR_client_id: ${{ secrets.AZURE_CLIENT_ID }}
-        TF_VAR_client_secret: ${{ secrets.AZURE_CLIENT_SECRET }}
-        TF_VAR_ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        TF_VAR_ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        ARM_USE_OIDC: true
+        ARM_USE_CLI: true
+        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         TF_VAR_db_user: ${{ vars.DB_USER }}
         TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}

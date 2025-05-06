@@ -16,6 +16,12 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
+    - name: Setup working directory
+      run: |
+        mkdir -p .terraform
+        sudo chown -R $USER .terraform
+        sudo chmod -R 755 .terraform
+
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
       with:
@@ -46,7 +52,9 @@ jobs:
       run: terraform init
 
     - name: Terraform Plan
-      run: terraform plan -out=terraform.tfplan
+      run: |
+        sudo chmod -R 777 .
+        terraform plan -out=terraform.tfplan
       env:
         TF_VAR_client_id: ${{ secrets.AZURE_CLIENT_ID }}
         TF_VAR_client_secret: ${{ secrets.AZURE_CLIENT_SECRET }}

@@ -195,7 +195,7 @@ resource "azurerm_linux_web_app" "app" {
   site_config {
     always_on = false
     vnet_route_all_enabled = true
-    container_registry_managed_identity_client_id = [data.azurerm_user_assigned_identity.app_identity.id]
+    container_registry_managed_identity_client_id = data.azurerm_user_assigned_identity.app_identity.client_id
     container_registry_use_managed_identity       = true
     application_stack {
       docker_image_name   = "dbclick-app:latest"

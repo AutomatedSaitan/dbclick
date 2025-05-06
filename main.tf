@@ -190,6 +190,8 @@ resource "azurerm_linux_web_app" "app" {
     DB_PASSWORD            = var.db_password
     DB_NAME                = "dbclick"
     WEBSITE_DNS_SERVER     = "168.63.129.16"
+    DOCKER_ENABLE_CI       = "true"
+    #WEBSITES_ENABLE_APP_SERVICE_STORAGE = "false"
   }
 
   site_config {
@@ -197,6 +199,7 @@ resource "azurerm_linux_web_app" "app" {
     vnet_route_all_enabled = true
     container_registry_managed_identity_client_id = data.azurerm_user_assigned_identity.app_identity.client_id
     container_registry_use_managed_identity       = true
+    #health_check_path                            = "/health"
     application_stack {
       docker_image_name   = "dbclick-app:latest"
       docker_registry_url = "https://${azurerm_container_registry.acr.login_server}"
@@ -250,7 +253,7 @@ resource "azurerm_container_registry_webhook" "acr_webhook" {
   registry_name       = azurerm_container_registry.acr.name
   location            = azurerm_resource_group.rg.location
 
-  service_uri = "https://${azurerm_linux_web_app.app.site_credential[0].name}:${azurerm_linux_web_app.app.site_credential[0].password}@${azurerm_linux_web_app.app.name}.scm.azurewebsites.net/docker/hook"
+  service_uri = "https://$${azurerm_linux_web_app.app.name}:${azurerm_linux_web_app.app.site_credential[0].password}@${azurerm_linux_web_app.app.name}.scm.azurewebsites.net/api/registry/webhook"
   
   actions = ["push"]
   status  = "enabled"

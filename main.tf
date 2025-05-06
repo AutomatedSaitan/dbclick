@@ -99,12 +99,8 @@ resource "azurerm_mysql_flexible_server" "db" {
   administrator_login    = var.db_user
   administrator_password = var.db_password
   sku_name               = "B_Standard_B1ms"
+  delegated_subnet_id    = azurerm_subnet.db_subnet.id
   private_dns_zone_id    = azurerm_private_dns_zone.mysql.id
-
-  network {
-    delegated_subnet_id = azurerm_subnet.db_subnet.id
-    private_dns_zone_id = azurerm_private_dns_zone.mysql.id
-  }
 
   depends_on = [
     azurerm_subnet.db_subnet,

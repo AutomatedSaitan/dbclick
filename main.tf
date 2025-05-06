@@ -32,7 +32,7 @@ resource "azurerm_role_assignment" "user_access_admin" {
 
 resource "azurerm_resource_group" "rg" {
   name     = "rg-dbclick"
-  location = "West Europe"
+  location = "UK West"
 }
 
 // VNet and Subnets

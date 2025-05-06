@@ -23,6 +23,11 @@ data "azurerm_user_assigned_identity" "app_identity" {
   resource_group_name = "az-rg-dbclick"
 }
 
+data "azurerm_container_registry" "acr" {
+  name                = "azacrdbclick-cmeqbmhgamadhreg"
+  resource_group_name = "az-rg-dbclick"
+}
+
 resource "azurerm_resource_group" "rg" {
   name     = "rg-dbclick"
   location = "Sweden Central"
@@ -173,19 +178,19 @@ resource "azurerm_linux_web_app" "app" {
   service_plan_id          = azurerm_service_plan.app_plan.id
   virtual_network_subnet_id = azurerm_subnet.app_subnet.id
 
-  identity {
-    type = "UserAssigned"
-    identity_ids = [data.azurerm_user_assigned_identity.app_identity.id]
-  }
+  #identity {
+  #  type = "SystemAssigned"
+  #}
+  
   app_settings = {
-    DB_HOST              = azurerm_mysql_flexible_server.db.fqdn
-    DB_USER              = "${var.db_user}@${azurerm_mysql_flexible_server.db.name}"
-    DB_PASSWORD          = var.db_password
-    DB_NAME              = "dbclick"
-    WEBSITE_DNS_SERVER   = "168.63.129.16"
-    DOCKER_REGISTRY_SERVER_URL = "azacrdbclick-cmeqbmhgamadhreg.azurecr.io"
-    DOCKER_ENABLE_MANAGED_IDENTITY = "true"
-    AZURE_CLIENT_ID      = data.azurerm_user_assigned_identity.app_identity.client_id
+    DB_HOST                        = azurerm_mysql_flexible_server.db.fqdn
+    DB_USER                        = var.db_user
+    DB_PASSWORD                    = var.db_password
+    DB_NAME                        = "dbclick"
+    WEBSITE_DNS_SERVER             = "168.63.129.16"
+    DOCKER_REGISTRY_SERVER_URL     = "https://azacrdbclick-cmeqbmhgamadhreg.azurecr.io"
+    DOCKER_REGISTRY_SERVER_USERNAME = var.client_id
+    DOCKER_REGISTRY_SERVER_PASSWORD = var.client_secret
   }
 
   site_config {
@@ -218,11 +223,11 @@ variable "db_password" {
   sensitive   = true
 }
 
-# variable "client_id" {
-#   description = "Service principal client ID for ACR"
-# }
+variable "client_id" {
+  description = "Service principal client ID for ACR"
+}
 
-# variable "client_secret" {
-#   description = "Service principal client secret for ACR"
-#   sensitive   = true
-# }
+variable "client_secret" {
+  description = "Service principal client secret for ACR"
+  sensitive   = true
+}

@@ -23,11 +23,6 @@ data "azurerm_user_assigned_identity" "app_identity" {
   resource_group_name = "az-rg-dbclick"
 }
 
-data "azurerm_container_registry" "acr" {
-  name                = "azacrdbclick-cmeqbmhgamadhreg"
-  resource_group_name = "az-rg-dbclick"
-}
-
 resource "azurerm_resource_group" "rg" {
   name     = "rg-dbclick"
   location = "Sweden Central"

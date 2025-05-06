@@ -1,11 +1,40 @@
 const express = require('express');
 const mysql = require('mysql2/promise');
+const rateLimit = require('express-rate-limit');
 const app = express();
 const port = 3000;
 
 // Add middleware configuration
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Configure rate limiters
+const defaultLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: { error: 'Too many requests, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const addEntryLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 5, // Limit each IP to 5 requests per minute
+  message: { error: 'Too many entries created. Please wait a minute.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const readLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 30, // Limit each IP to 30 requests per minute
+  message: { error: 'Too many read requests. Please wait a minute.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Apply default rate limiter to all routes
+app.use(defaultLimiter);
 
 const dbConfig = {
   host: process.env.DB_HOST,
@@ -90,11 +119,11 @@ app.get('/', (req, res) => {
 });
 
 // Add health check endpoint
-app.get('/health', (req, res) => {
+app.get('/health', readLimiter, (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
-app.get('/last-entry', async (req, res) => {
+app.get('/last-entry', readLimiter, async (req, res) => {
   try {
     const connection = await mysql.createConnection(dbConfig);
     const [rows] = await connection.execute('SELECT * FROM entries ORDER BY id DESC LIMIT 1');
@@ -106,7 +135,7 @@ app.get('/last-entry', async (req, res) => {
   }
 });
 
-app.get('/add-entry', async (req, res) => {
+app.get('/add-entry', addEntryLimiter, async (req, res) => {
   const timestamp = new Date().toISOString();
   console.log(`[${timestamp}] Processing GET request to /add-entry`);
   

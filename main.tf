@@ -165,7 +165,6 @@ resource "azurerm_service_plan" "app_plan" {
   }
 }
 
-
 resource "azurerm_linux_web_app" "app" {
   name                     = "dbclick-app"
   location                 = azurerm_resource_group.rg.location
@@ -205,6 +204,24 @@ resource "azurerm_linux_web_app" "app" {
 
   timeouts {
     create = "2h"
+  }
+}
+
+// Add ACR Webhook
+resource "azurerm_container_registry_webhook" "acr_webhook" {
+  name                = "webapp-update"
+  resource_group_name = "az-rg-dbclick"
+  registry_name       = "azacrdbclick-cmeqbmhgamadhreg"
+  location           = azurerm_resource_group.rg.location
+
+  service_uri = "https://$${azurerm_linux_web_app.app.site_credential[0].name}:$${azurerm_linux_web_app.app.site_credential[0].password}@${azurerm_linux_web_app.app.name}.scm.azurewebsites.net/docker/hook"
+  
+  actions = ["push"]
+  status  = "enabled"
+  scope   = "dbclick-app:latest"
+  
+  custom_headers = {
+    "Content-Type" = "application/json"
   }
 }
 

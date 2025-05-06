@@ -135,6 +135,21 @@ resource "azurerm_mysql_flexible_database" "database" {
   collation           = "utf8_unicode_ci"
 }
 
+resource "azurerm_mysql_flexible_server_configuration" "allow_app_access" {
+  name                = "require_secure_transport"
+  resource_group_name = azurerm_resource_group.rg.name
+  server_name         = azurerm_mysql_flexible_server.db.name
+  value               = "OFF"
+}
+
+resource "azurerm_mysql_flexible_server_firewall_rule" "allow_app_subnet" {
+  name                = "allow-app-subnet"
+  resource_group_name = azurerm_resource_group.rg.name
+  server_name         = azurerm_mysql_flexible_server.db.name
+  start_ip_address    = cidrhost(azurerm_subnet.app_subnet.address_prefixes[0], 0)
+  end_ip_address      = cidrhost(azurerm_subnet.app_subnet.address_prefixes[0], 255)
+}
+
 // App Service
 resource "azurerm_service_plan" "app_plan" {
   name                = "dbclick-app-plan"

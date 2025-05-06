@@ -10,6 +10,19 @@ const dbConfig = {
   database: process.env.DB_NAME,
 };
 
+async function testDatabaseConnection() {
+  try {
+    const connection = await mysql.createConnection(dbConfig);
+    await connection.query('SELECT 1');
+    await connection.end();
+    console.log('Database connection successful');
+    return true;
+  } catch (error) {
+    console.error('Database connection failed:', error.message);
+    return false;
+  }
+}
+
 app.get('/last-entry', async (req, res) => {
   try {
     const connection = await mysql.createConnection(dbConfig);
@@ -17,7 +30,8 @@ app.get('/last-entry', async (req, res) => {
     await connection.end();
     res.json(rows[0] || {});
   } catch (error) {
-    res.status(500).send('Error retrieving last entry');
+    console.error('Error retrieving last entry:', error.message);
+    res.status(500).json({ error: 'Database error: ' + error.message });
   }
 });
 
@@ -30,10 +44,21 @@ app.post('/add-entry', async (req, res) => {
     await connection.end();
     res.send('Entry added');
   } catch (error) {
-    res.status(500).send('Error adding entry');
+    console.error('Error adding entry:', error.message);
+    res.status(500).json({ error: 'Database error: ' + error.message });
   }
 });
 
-app.listen(port, () => {
-  console.log(`App running on http://localhost:${port}`);
-});
+async function startServer() {
+  const dbConnected = await testDatabaseConnection();
+  if (!dbConnected) {
+    console.error('Server startup failed: Could not connect to database');
+    process.exit(1);
+  }
+  
+  app.listen(port, () => {
+    console.log(`App running on http://localhost:${port}`);
+  });
+}
+
+startServer();

@@ -27,7 +27,7 @@ data "azurerm_user_assigned_identity" "app_identity" {
 resource "azurerm_role_assignment" "user_access_admin" {
   scope                = azurerm_resource_group.rg.id
   role_definition_name = "Owner"
-  principal_id         = data.azurerm_user_assigned_identity.app_identity.principal_id
+  principal_id         = data.azurerm_user_assigned_identity.app_identity.id
 }
 
 resource "azurerm_resource_group" "rg" {
@@ -195,7 +195,7 @@ resource "azurerm_linux_web_app" "app" {
   site_config {
     always_on = false
     vnet_route_all_enabled = true
-    container_registry_managed_identity_client_id = data.azurerm_user_assigned_identity.app_identity.client_id
+    container_registry_managed_identity_client_id = data.azurerm_user_assigned_identity.app_identity.id
     container_registry_use_managed_identity       = true
     application_stack {
       docker_image_name   = "dbclick-app:latest"
@@ -227,14 +227,14 @@ resource "azurerm_container_registry" "acr" {
 resource "azurerm_role_assignment" "acr_push" {
   scope                = azurerm_container_registry.acr.id
   role_definition_name = "AcrPush"
-  principal_id         = data.azurerm_user_assigned_identity.app_identity.principal_id
+  principal_id         = data.azurerm_user_assigned_identity.app_identity.id
 }
 
 // Add AcrPull role assignment for web app
 resource "azurerm_role_assignment" "acr_pull" {
   scope                = azurerm_container_registry.acr.id
   role_definition_name = "AcrPull"
-  principal_id         = data.azurerm_user_assigned_identity.app_identity.principal_id
+  principal_id         = data.azurerm_user_assigned_identity.app_identity.id
 }
 
 // Add ACR Webhook

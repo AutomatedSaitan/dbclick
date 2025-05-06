@@ -27,7 +27,7 @@ data "azurerm_user_assigned_identity" "app_identity" {
 resource "azurerm_role_assignment" "user_access_admin" {
   scope                = azurerm_resource_group.rg.id
   role_definition_name = "Owner"
-  principal_id         = data.azurerm_user_assigned_identity.app_identity.id
+  principal_id         = data.azurerm_user_assigned_identity.app_identity.principal_id
 }
 
 resource "azurerm_resource_group" "rg" {

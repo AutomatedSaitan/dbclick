@@ -46,6 +46,29 @@ async function testDatabaseConnection(retryCount = 0) {
   }
 }
 
+async function createTableIfNotExists() {
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] Checking/creating database table...`);
+  
+  try {
+    const connection = await mysql.createConnection(dbConfig);
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS entries (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        timestamp DATETIME NOT NULL,
+        random_string VARCHAR(255) NOT NULL
+      )
+    `);
+    await connection.end();
+    console.log(`[${timestamp}] ✓ Table check/creation successful`);
+    return true;
+  } catch (error) {
+    console.error(`[${timestamp}] ✗ Table creation failed:`);
+    console.error(`[${timestamp}] Error message: ${error.message}`);
+    return false;
+  }
+}
+
 // Add root route for API instructions
 app.get('/', (req, res) => {
   res.send(`
@@ -149,6 +172,12 @@ async function startServer() {
   const dbConnected = await testDatabaseConnection();
   if (!dbConnected) {
     console.error(`Server startup failed: Could not connect to database after ${MAX_RETRIES} attempts`);
+    process.exit(1);
+  }
+  
+  const tableCreated = await createTableIfNotExists();
+  if (!tableCreated) {
+    console.error('Server startup failed: Could not create required database table');
     process.exit(1);
   }
   

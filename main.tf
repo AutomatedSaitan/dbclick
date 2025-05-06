@@ -23,6 +23,13 @@ data "azurerm_user_assigned_identity" "app_identity" {
   resource_group_name = "az-rg-dbclick"
 }
 
+// Add User Access Administrator role to managed identity
+resource "azurerm_role_assignment" "user_access_admin" {
+  scope                = azurerm_resource_group.rg.id
+  role_definition_name = "User Access Administrator"
+  principal_id         = data.azurerm_user_assigned_identity.app_identity.principal_id
+}
+
 resource "azurerm_resource_group" "rg" {
   name     = "rg-dbclick"
   location = "Sweden Central"
@@ -39,7 +46,7 @@ resource "azurerm_virtual_network" "vnet" {
     create = "2h"
   }
 
-  depends_on = [azurerm_resource_group.rg]
+  depends_on = [azurerm_resource_group.rg, azurerm_role_assignment.user_access_admin]
 }
 
 resource "azurerm_subnet" "app_subnet" {

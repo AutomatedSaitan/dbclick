@@ -37,9 +37,8 @@ jobs:
     
     - name: Build Docker image
       run: |
-        docker build -t dbclick-app .
-        docker tag dbclick-app azacrdbclick/dbclick-app:latest
-        docker push azacrdbclick/dbclick-app:latest
+        docker build -t ${{ vars.AZURE_CONTAINER_REGISTRY }}.azurecr.io/dbclick-app:latest .
+        docker push ${{ vars.AZURE_CONTAINER_REGISTRY }}.azurecr.io/dbclick-app:latest
 
     - name: Deploy to Azure App Service
       run: |
